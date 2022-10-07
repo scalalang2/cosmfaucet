@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  testchain:
+    image: tendermint/gaia:v4.2.0
+    restart: always
+    user: root
+    volumes:
+      - ./scripts:/gaia
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo "start run single node."
+        /gaia/init_chain.sh
+    ports:
+      - "26656:26656"
+      - "26657:26657"
+      - "1317:1317"
+      - "9090:9090"
+      - "9091:9091"
+  faucet:
+    build:
+      context: ..
+    restart: always
+    volumes:
+      - ./config.yml:/app/config/config.yml
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo "start run faucet."
+        /app/server --config-fiole /app/config/config.yml
+    ports:
+      - "8080:8080"

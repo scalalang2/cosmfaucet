@@ -1,0 +1,12 @@
+server:
+  port: 8080
+  limit:
+    enabled: true
+    period: 86400
+chains:
+  - name: "cosmos"
+    faucet:
+      sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
+      key: "reopen throw concert garment wash slab jump company habit father below stage float attitude achieve net charge bulb mouse mind fat net hello vague"
+      denom: "atom"
+      drop_amount: "10000000"
