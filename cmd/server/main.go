@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/inconshreveable/log15"
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
 	"github.com/scalalang2/cosmfaucet/server/faucet"
 	"google.golang.org/grpc"
@@ -11,15 +12,19 @@ import (
 	"net/http"
 )
 
+var (
+	logger = log15.New("module", "app")
+)
+
 func main() {
 	if err := run("localhost:9090"); err != nil {
+		logger.Error("failed to run the server", "err", err)
 		panic(err)
 	}
 }
 
 func run(endpoint string) error {
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	addr := "0.0.0.0:9090"
@@ -35,7 +40,9 @@ func run(endpoint string) error {
 
 	// run gRPC server
 	go func() {
+		logger.Info("start to serve gRPC Server", "addr", addr)
 		if grpcErr := s.Serve(lis); grpcErr != nil {
+			logger.Error("failed to serve grpc server", "err", grpcErr)
 			panic(grpcErr)
 		}
 	}()
@@ -50,5 +57,6 @@ func run(endpoint string) error {
 	}
 
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
+	logger.Info("start to serve HTTP Proxy Server", "addr", ":8081")
 	return http.ListenAndServe(":8081", mux)
 }

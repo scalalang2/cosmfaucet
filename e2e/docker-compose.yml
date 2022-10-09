@@ -24,7 +24,7 @@ services:
       context: ..
     restart: always
     volumes:
-      - ./config.yml:/app/config/config.yml
+      - ./configs:/app/config/config.yml
     command:
       - /bin/sh
       - -c
