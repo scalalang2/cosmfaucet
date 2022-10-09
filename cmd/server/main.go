@@ -5,7 +5,6 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/inconshreveable/log15"
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
-	"github.com/scalalang2/cosmfaucet/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"net"
@@ -36,7 +35,7 @@ func run(endpoint string) error {
 	// insecure tls option
 	serverOpts := []grpc.ServerOption{grpc.Creds(insecure.NewCredentials())}
 	s := grpc.NewServer(serverOpts...)
-	faucetpb.RegisterFaucetServiceServer(s, server.New())
+	faucetpb.RegisterFaucetServiceServer(s, core.New())
 
 	// run gRPC server
 	go func() {
