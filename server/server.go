@@ -1,4 +1,4 @@
-package faucet
+package server
 
 import (
 	"context"
