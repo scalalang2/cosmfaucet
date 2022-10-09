@@ -1,0 +1,151 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "proto/faucet.proto",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "FaucetService"
+    }
+  ],
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/faucet/chains": {
+      "get": {
+        "summary": "Add a user",
+        "description": "Add a user to the server.",
+        "operationId": "FaucetService_Chains",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/exampleGetChainsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/faucet/give_me": {
+      "post": {
+        "summary": "Add a user",
+        "description": "Add a user to the server.",
+        "operationId": "FaucetService_GiveMe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/exampleGiveMeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/exampleGiveMeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "exampleChain": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "chainId": {
+          "type": "string"
+        }
+      }
+    },
+    "exampleGetChainsResponse": {
+      "type": "object",
+      "properties": {
+        "chains": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/exampleChain"
+          }
+        }
+      }
+    },
+    "exampleGiveMeRequest": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "chainId": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "exampleGiveMeResponse": {
+      "type": "object"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "Cosmfacuet gRPC spec",
+    "url": "https://github.com/scalalang2/cosmfaucet"
+  }
+}

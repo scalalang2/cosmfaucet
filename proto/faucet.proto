@@ -1,0 +1,69 @@
+syntax="proto3";
+
+package example;
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+// Defines the import path that should be used to import the generated package,
+// and the package name.
+option go_package = "github.com/scalalang2/cosmfaucet/x/faucetpb";
+
+// These annotations are used when generating the OpenAPI file.
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    version: "1.0";
+  };
+  external_docs: {
+    url: "https://github.com/scalalang2/cosmfaucet";
+    description: "Cosmfacuet gRPC spec";
+  }
+  schemes: HTTPS;
+};
+
+service FaucetService {
+  rpc GiveMe(GiveMeRequest) returns (GiveMeResponse) {
+    option (google.api.http) = {
+      // Route to this method from POST requests to /api/v1/users
+      post: "/api/v1/faucet/give_me"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Add a user"
+      description: "Add a user to the server."
+      tags: "Users"
+    };
+  }
+
+  rpc Chains(GetChainsRequest) returns (GetChainsResponse) {
+    option (google.api.http) = {
+      // Route to this method from POST requests to /api/v1/users
+      get: "/api/v1/faucet/chains"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Add a user"
+      description: "Add a user to the server."
+      tags: "Users"
+    };
+  }
+}
+
+message GiveMeRequest {
+  string address = 1;
+  int32 chain_id = 2;
+}
+message GiveMeResponse {}
+
+message GetChainsRequest {}
+message GetChainsResponse {
+  repeated Chain chains = 1;
+}
+
+message Chain {
+  string name = 1;
+  string chain_id = 2;
+}
+
+message User {
+  string id = 1;
+}
