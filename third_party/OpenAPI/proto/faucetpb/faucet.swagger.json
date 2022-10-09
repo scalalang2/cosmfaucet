@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "proto/faucet.proto",
+    "title": "proto/faucetpb/faucet.proto",
     "version": "1.0"
   },
   "tags": [

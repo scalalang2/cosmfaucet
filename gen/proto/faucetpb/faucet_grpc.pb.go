@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             (unknown)
-// source: proto/faucet.proto
+// source: proto/faucetpb/faucet.proto
 
 package faucetpb
 
@@ -53,14 +53,15 @@ func (c *faucetServiceClient) Chains(ctx context.Context, in *GetChainsRequest, 
 }
 
 // FaucetServiceServer is the server API for FaucetService service.
-// All implementations should embed UnimplementedFaucetServiceServer
+// All implementations must embed UnimplementedFaucetServiceServer
 // for forward compatibility
 type FaucetServiceServer interface {
 	GiveMe(context.Context, *GiveMeRequest) (*GiveMeResponse, error)
 	Chains(context.Context, *GetChainsRequest) (*GetChainsResponse, error)
+	mustEmbedUnimplementedFaucetServiceServer()
 }
 
-// UnimplementedFaucetServiceServer should be embedded to have forward compatible implementations.
+// UnimplementedFaucetServiceServer must be embedded to have forward compatible implementations.
 type UnimplementedFaucetServiceServer struct {
 }
 
@@ -70,6 +71,7 @@ func (UnimplementedFaucetServiceServer) GiveMe(context.Context, *GiveMeRequest) 
 func (UnimplementedFaucetServiceServer) Chains(context.Context, *GetChainsRequest) (*GetChainsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Chains not implemented")
 }
+func (UnimplementedFaucetServiceServer) mustEmbedUnimplementedFaucetServiceServer() {}
 
 // UnsafeFaucetServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to FaucetServiceServer will
@@ -135,5 +137,5 @@ var FaucetService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/faucet.proto",
+	Metadata: "proto/faucetpb/faucet.proto",
 }
