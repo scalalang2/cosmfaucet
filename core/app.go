@@ -3,15 +3,18 @@ package core
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"strings"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
 	lens "github.com/strangelove-ventures/lens/client"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	net "net"
-	"net/http"
-	"os"
 )
 
 type ChainId = string
@@ -29,12 +32,6 @@ type App struct {
 func NewApp(config *RootConfig) (*App, error) {
 	app := &App{config: config, clients: make(ChainClients)}
 
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-	keyDir := wd + "/keys"
-
 	logger, err := zap.NewProduction()
 	if err != nil {
 		return nil, err
@@ -43,26 +40,16 @@ func NewApp(config *RootConfig) (*App, error) {
 	defer logger.Sync()
 
 	// connects to all chains
-	for _, chain := range app.config.Chains {
-		cfg := lens.ChainClientConfig{
-			Key:            "default",
-			ChainID:        chain.ChainId,
-			RPCAddr:        chain.RpcEndpoint,
-			AccountPrefix:  chain.AccountPrefix,
-			KeyringBackend: "test",
-			GasAdjustment:  chain.GasAdjustment,
-			GasPrices:      chain.GasPrice,
-			KeyDirectory:   keyDir,
-			Debug:          false,
-			Timeout:        "20s",
-			OutputFormat:   "json",
-			SignModeStr:    "direct",
-			Modules:        lens.ModuleBasics,
-		}
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	keyDir := wd + "/keys"
 
+	for _, chain := range app.config.Chains {
 		fields := []zap.Field{zap.String("chain", chain.Name), zap.String("rpc", chain.RpcEndpoint)}
 		logger.Info("trying to connect to the chain", fields...)
-		cc, err := lens.NewChainClient(logger, &cfg, keyDir, os.Stdin, os.Stdout)
+		cc, err := newChainClient(logger, chain, keyDir)
 		if err != nil {
 			logger.Fatal("failed to connect to the chain", fields...)
 			return nil, err
@@ -80,13 +67,59 @@ func NewApp(config *RootConfig) (*App, error) {
 	return app, nil
 }
 
+// validateChainConditions check the account can conduct a duty of faucet.
+// It must have enough balance to pay out the drop coins to the user
+func (a *App) validateChainConditions() error {
+	for _, chain := range a.config.Chains {
+		valid := false
+		client, ok := a.clients[chain.ChainId]
+		if !ok {
+			return fmt.Errorf("chain with id %s does not exist", chain.ChainId)
+		}
+
+		addr, err := sdk.AccAddressFromBech32(chain.Sender)
+		if err != nil {
+			return err
+		}
+
+		dropCoin, err := sdk.ParseCoinNormalized(chain.DropCoin)
+		if err != nil {
+			return err
+		}
+
+		coins, err := client.QueryBalanceWithDenomTraces(context.Background(), addr, nil)
+		if err != nil {
+			return err
+		}
+
+		for _, coin := range coins {
+			if coin.Denom == dropCoin.Denom {
+				valid = true
+				break
+			}
+		}
+
+		if !valid {
+			return fmt.Errorf("chain %s doesnt have the valid denom of drop coin: %s", chain.Name, dropCoin.Denom)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) Run() error {
+	err := a.validateChainConditions()
+	if err != nil {
+		return fmt.Errorf("validation check failed on chains: %v", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	a.cancelFunc = cancel
 
 	grpcAddr := fmt.Sprintf("0.0.0.0:%d", a.config.Server.Grpc.Port)
 	httpAddr := fmt.Sprintf(":%d", a.config.Server.Http.Port)
 
+	// run gRPC server
 	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
 		return err
@@ -104,6 +137,7 @@ func (a *App) Run() error {
 		}
 	}()
 
+	// run HTTP Server
 	mux := runtime.NewServeMux()
 	endpoint := fmt.Sprintf("localhost:%d", a.config.Server.Grpc.Port)
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
@@ -123,4 +157,34 @@ func (a *App) Run() error {
 
 func (a *App) Stop() {
 	a.cancelFunc()
+}
+
+// newChainClient create a client for the cosmos blockchain
+func newChainClient(logger *zap.Logger, config ChainConfig, homePath string) (*lens.ChainClient, error) {
+	if !strings.HasPrefix(config.RpcEndpoint, "http") {
+		return nil, errInvalidEndpoint{rpc: config.RpcEndpoint}
+	}
+
+	cfg := lens.ChainClientConfig{
+		Key:            "default",
+		ChainID:        config.ChainId,
+		RPCAddr:        config.RpcEndpoint,
+		AccountPrefix:  config.AccountPrefix,
+		KeyringBackend: "test",
+		GasAdjustment:  config.GasAdjustment,
+		GasPrices:      config.GasPrice,
+		KeyDirectory:   homePath,
+		Debug:          false,
+		Timeout:        "20s",
+		OutputFormat:   "json",
+		SignModeStr:    "direct",
+		Modules:        lens.ModuleBasics,
+	}
+
+	cc, err := lens.NewChainClient(logger, &cfg, homePath, os.Stdin, os.Stdout)
+	if err != nil {
+		return nil, err
+	}
+
+	return cc, nil
 }

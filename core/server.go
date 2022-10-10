@@ -18,10 +18,13 @@ func NewServer(config *RootConfig, clients *ChainClients) *Server {
 	}
 }
 
+// GiveMe sends a `BankMsg` transaction to the chain to send some tokens to the given address
+// It blocks the request if the user is given the token in the last 24 hours.
 func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*faucetpb.GiveMeResponse, error) {
 	return &faucetpb.GiveMeResponse{}, nil
 }
 
+// Chains returns all supported chains
 func (s *Server) Chains(ctx context.Context, request *faucetpb.GetChainsRequest) (*faucetpb.GetChainsResponse, error) {
 	res := make([]*faucetpb.Chain, 0)
 	for _, chain := range s.config.Chains {

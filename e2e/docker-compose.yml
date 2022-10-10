@@ -19,17 +19,17 @@ services:
       - "1317:1317"
       - "9090:9090"
       - "9091:9091"
-  faucet:
-    build:
-      context: ..
-    restart: always
-    volumes:
-      - ./configs:/app/config/config.yml
-    command:
-      - /bin/sh
-      - -c
-      - |
-        echo "start run faucet."
-        /app/server --config-fiole /app/config/config.yml
-    ports:
-      - "8080:8080"
+#  faucet:
+#    build:
+#      context: ..
+#    restart: always
+#    volumes:
+#      - ./configs:/app/config/config.yml
+#    command:
+#      - /bin/sh
+#      - -c
+#      - |
+#        echo "start run faucet."
+#        /app/server --config-fiole /app/config/config.yml
+#    ports:
+#      - "8080:8080"
