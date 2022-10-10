@@ -7,23 +7,31 @@ import (
 
 type Server struct {
 	faucetpb.FaucetServiceServer
+	config  *RootConfig
+	clients *ChainClients
 }
 
-func New() *Server {
-	return &Server{}
+func NewServer(config *RootConfig, clients *ChainClients) *Server {
+	return &Server{
+		config:  config,
+		clients: clients,
+	}
 }
 
-func (s Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*faucetpb.GiveMeResponse, error) {
+func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*faucetpb.GiveMeResponse, error) {
 	return &faucetpb.GiveMeResponse{}, nil
 }
 
-func (s Server) Chains(ctx context.Context, request *faucetpb.GetChainsRequest) (*faucetpb.GetChainsResponse, error) {
+func (s *Server) Chains(ctx context.Context, request *faucetpb.GetChainsRequest) (*faucetpb.GetChainsResponse, error) {
+	res := make([]*faucetpb.Chain, 0)
+	for _, chain := range s.config.Chains {
+		res = append(res, &faucetpb.Chain{
+			Name:    chain.Name,
+			ChainId: chain.ChainId,
+		})
+	}
+
 	return &faucetpb.GetChainsResponse{
-		Chains: []*faucetpb.Chain{
-			{
-				Name:    "test",
-				ChainId: "testchain",
-			},
-		},
+		Chains: res,
 	}, nil
 }
