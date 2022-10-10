@@ -77,7 +77,7 @@ func (a *App) validateChainConditions() error {
 			return fmt.Errorf("chain with id %s does not exist", chain.ChainId)
 		}
 
-		addr, err := sdk.AccAddressFromBech32(chain.Sender)
+		addr, err := sdk.GetFromBech32(chain.Sender, chain.AccountPrefix)
 		if err != nil {
 			return err
 		}
