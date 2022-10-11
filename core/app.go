@@ -19,6 +19,10 @@ import (
 
 type ChainId = string
 type ChainClients = map[ChainId]*lens.ChainClient
+type ChainInitializer = func(logger *zap.Logger, config ChainConfig, homePath string) (*lens.ChainClient, error)
+
+// chain initializer
+var newChainClient = newLensClient
 
 type App struct {
 	logger  *zap.Logger
@@ -107,19 +111,9 @@ func (a *App) validateChainConditions() error {
 	return nil
 }
 
-func (a *App) Run() error {
-	err := a.validateChainConditions()
-	if err != nil {
-		return fmt.Errorf("validation check failed on chains: %v", err)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	a.cancelFunc = cancel
-
+func (a *App) runRPCServer() error {
 	grpcAddr := fmt.Sprintf("0.0.0.0:%d", a.config.Server.Grpc.Port)
-	httpAddr := fmt.Sprintf(":%d", a.config.Server.Http.Port)
 
-	// run gRPC server
 	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
 		return err
@@ -137,11 +131,15 @@ func (a *App) Run() error {
 		}
 	}()
 
-	// run HTTP Server
+	return nil
+}
+
+func (a *App) runHTTPServer(ctx context.Context) error {
+	httpAddr := fmt.Sprintf(":%d", a.config.Server.Http.Port)
 	mux := runtime.NewServeMux()
 	endpoint := fmt.Sprintf("localhost:%d", a.config.Server.Grpc.Port)
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err = faucetpb.RegisterFaucetServiceHandlerFromEndpoint(ctx, mux, endpoint, opts)
+	err := faucetpb.RegisterFaucetServiceHandlerFromEndpoint(ctx, mux, endpoint, opts)
 	if err != nil {
 		return err
 	}
@@ -151,16 +149,43 @@ func (a *App) Run() error {
 		Handler: mux,
 	}
 
-	a.logger.Info("start to serve http Server", zap.String("addr", httpAddr))
-	return httpSv.ListenAndServe()
+	go func() {
+		a.logger.Info("start to serve http Server", zap.String("addr", httpAddr))
+		if err := httpSv.ListenAndServe(); err != nil {
+			a.logger.Fatal("failed to serve HTTP Server", zap.Error(err))
+			a.cancelFunc()
+		}
+	}()
+
+	return nil
+}
+
+func (a *App) Run() error {
+	err := a.validateChainConditions()
+	if err != nil {
+		return fmt.Errorf("validation check failed on chains: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	a.cancelFunc = cancel
+
+	if err := a.runRPCServer(); err != nil {
+		return err
+	}
+
+	if err := a.runHTTPServer(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *App) Stop() {
 	a.cancelFunc()
 }
 
-// newChainClient create a client for the cosmos blockchain
-func newChainClient(logger *zap.Logger, config ChainConfig, homePath string) (*lens.ChainClient, error) {
+// newLensClient create a client for the cosmos blockchain
+func newLensClient(logger *zap.Logger, config ChainConfig, homePath string) (*lens.ChainClient, error) {
 	if !strings.HasPrefix(config.RpcEndpoint, "http") {
 		return nil, errInvalidEndpoint{rpc: config.RpcEndpoint}
 	}

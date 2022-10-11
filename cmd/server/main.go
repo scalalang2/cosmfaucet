@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/scalalang2/cosmfaucet/core"
 	"log"
 	"os"
+
+	"github.com/scalalang2/cosmfaucet/core"
 )
 
 var flagConfig = flag.String("config-file", "config.yaml", "path to config file")
@@ -27,4 +28,6 @@ func main() {
 	if err := app.Run(); err != nil {
 		log.Fatalf("failed to run the application: %v", err)
 	}
+
+	<-make(chan bool)
 }
