@@ -66,7 +66,7 @@ func NewApp(config *RootConfig) (*App, error) {
 		app.clients[chain.ChainId] = cc
 	}
 
-	app.Server = NewServer(app.config, &app.clients)
+	app.Server = NewServer(app.logger, app.config, app.clients)
 
 	return app, nil
 }
@@ -210,6 +210,12 @@ func newLensClient(logger *zap.Logger, config ChainConfig, homePath string) (*le
 	if err != nil {
 		return nil, err
 	}
+
+	addr, err := cc.RestoreKey(config.ChainId, config.Key, 118)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("master wallet is restored", zap.String("address", addr))
 
 	return cc, nil
 }

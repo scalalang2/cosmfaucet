@@ -50,7 +50,7 @@ service FaucetService {
 
 message GiveMeRequest {
   string address = 1;
-  int32 chain_id = 2;
+  string chain_id = 2;
 }
 message GiveMeResponse {}
 

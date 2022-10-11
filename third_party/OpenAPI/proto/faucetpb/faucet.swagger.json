@@ -108,8 +108,7 @@
           "type": "string"
         },
         "chainId": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string"
         }
       }
     },
