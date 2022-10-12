@@ -7,8 +7,8 @@ server:
     enabled: true
     period: 86400
 chains:
-  - name: "test"
-    chain_id: "testchain"
+  - name: "cosmos"
+    chain_id: "cosmosdev"
     rpc_endpoint: "http://localhost:26657/"
     account_prefix: "cosmos"
     sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
@@ -16,8 +16,8 @@ chains:
     gas_adjustment: 1.2
     gas_price: "0.01uatom"
     drop_coin: "10000000uatom"
-  - name: "test22"
-    chain_id: "testchain22"
+  - name: "osmosis"
+    chain_id: "osmosisdev"
     rpc_endpoint: "http://localhost:26657/"
     account_prefix: "cosmos"
     sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
