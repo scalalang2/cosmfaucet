@@ -12,7 +12,7 @@ function App() {
     const [selected, setSelected] = useState(null);
 
     const loadChains = async () => {
-        return fetch("http://localhost:8081/api/v1/faucet/chains")
+        return fetch("/api/v1/faucet/chains")
             .then(response => response.json())
     }
 
@@ -25,7 +25,7 @@ function App() {
             address: address,
             chainId: selected.chainId,
         };
-        const response = await fetch("http://localhost:8081/api/v1/faucet/give_me", {
+        const response = await fetch("/api/v1/faucet/give_me", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

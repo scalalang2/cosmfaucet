@@ -212,7 +212,7 @@ func newLensClient(logger *zap.Logger, config ChainConfig, homePath string) (*le
 	}
 
 	cfg := lens.ChainClientConfig{
-		Key:            config.ChainId,
+		Key:            config.KeyName,
 		ChainID:        config.ChainId,
 		RPCAddr:        config.RpcEndpoint,
 		AccountPrefix:  config.AccountPrefix,
@@ -233,7 +233,7 @@ func newLensClient(logger *zap.Logger, config ChainConfig, homePath string) (*le
 	}
 
 	// ignore the error
-	addr, _ := cc.RestoreKey(config.ChainId, config.Key, 118)
+	addr, _ := cc.RestoreKey(config.KeyName, config.Key, 118)
 	logger.Info("master wallet is restored", zap.String("address", addr))
 
 	return cc, nil

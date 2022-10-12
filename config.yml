@@ -1,4 +1,5 @@
 server:
+  allow_cors: false
   http:
     port: 8081
   grpc:
@@ -8,7 +9,8 @@ server:
     period: 86400
 chains:
   - name: "cosmos"
-    chain_id: "cosmosdev"
+    key_name: "cosmos"
+    chain_id: "testchain"
     rpc_endpoint: "http://localhost:26657/"
     account_prefix: "cosmos"
     sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
@@ -17,7 +19,8 @@ chains:
     gas_price: "0.01uatom"
     drop_coin: "10000000uatom"
   - name: "osmosis"
-    chain_id: "osmosisdev"
+    key_name: "osmosis"
+    chain_id: "testchain22"
     rpc_endpoint: "http://localhost:26657/"
     account_prefix: "cosmos"
     sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"

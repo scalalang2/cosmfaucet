@@ -30,6 +30,7 @@ services:
 #      - -c
 #      - |
 #        echo "start run faucet."
-#        /app/server --config-fiole /app/config/config.yml
+#        /app/server --config-file /app/config/config.yml
 #    ports:
-#      - "8080:8080"
+#      - "8081:8081"
+#      - "9092:9092"

@@ -1,9 +1,10 @@
 package core
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+
+	"gopkg.in/yaml.v2"
 )
 
 type RootConfig struct {
@@ -32,6 +33,7 @@ type ChainConfig struct {
 	GasAdjustment float64 `yaml:"gas_adjustment"`
 	GasPrice      string  `yaml:"gas_price"`
 	Sender        string  `yaml:"sender"`
+	KeyName       string  `yaml:"key_name"`
 	Key           string  `yaml:"key"`
 	DropCoin      string  `yaml:"drop_coin"`
 }
