@@ -16,3 +16,12 @@ chains:
     gas_adjustment: 1.2
     gas_price: "0.01uatom"
     drop_coin: "10000000uatom"
+  - name: "test22"
+    chain_id: "testchain22"
+    rpc_endpoint: "http://localhost:26657/"
+    account_prefix: "cosmos"
+    sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
+    key: "reopen throw concert garment wash slab jump company habit father below stage float attitude achieve net charge bulb mouse mind fat net hello vague"
+    gas_adjustment: 1.2
+    gas_price: "0.01uatom"
+    drop_coin: "10000000uatom"

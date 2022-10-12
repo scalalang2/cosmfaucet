@@ -5,6 +5,7 @@ module github.com/scalalang2/cosmfaucet
 require (
 	github.com/cosmos/cosmos-sdk v0.45.5-0.20220523154235-2921a1c3c918
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
+	github.com/rs/cors v1.8.2
 	github.com/strangelove-ventures/lens v0.5.1
 	go.uber.org/zap v1.21.0
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc

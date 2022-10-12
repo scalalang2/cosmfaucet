@@ -10,6 +10,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/rs/cors"
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
 	lens "github.com/strangelove-ventures/lens/client"
 	"go.uber.org/zap"
@@ -166,7 +167,7 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 
 	httpSv := http.Server{
 		Addr:    httpAddr,
-		Handler: mux,
+		Handler: cors.Default().Handler(mux),
 	}
 
 	go func() {
@@ -211,7 +212,7 @@ func newLensClient(logger *zap.Logger, config ChainConfig, homePath string) (*le
 	}
 
 	cfg := lens.ChainClientConfig{
-		Key:            "default",
+		Key:            config.ChainId,
 		ChainID:        config.ChainId,
 		RPCAddr:        config.RpcEndpoint,
 		AccountPrefix:  config.AccountPrefix,

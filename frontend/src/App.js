@@ -1,61 +1,97 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
+import FaucetUI from "./FacuetUI";
+import AlertView from "./AlertView";
 
 function App() {
-  return (
-      <div className="bg-slate-800 h-screen">
-          <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
-              <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    const [chains, setChains] = useState([]);
+    const [error, setError] = useState(null);
+    const [alert, setAlert] = useState(null);
+    const [success, setSuccess] = useState(null);
+    const [isSending, setIsSending] = useState(false);
+    const [address, setAddress] = useState("");
+    const [selected, setSelected] = useState(null);
+
+    const loadChains = async () => {
+        return fetch("http://localhost:8081/api/v1/faucet/chains")
+            .then(response => response.json())
+    }
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setIsSending(true);
+        setSuccess(null);
+        setAlert(null);
+        let payload = {
+            address: address,
+            chainId: selected.chainId,
+        };
+        const response = await fetch("http://localhost:8081/api/v1/faucet/give_me", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        setIsSending(false);
+        response.status === 200 ? setSuccess("Transaction successfully sent") : setAlert(`Error occurred while sending transaction, status code: ${response.status}`);
+        response.status === 200 ? setAlert(null) : setSuccess(null);
+        console.log(response);
+    }
+
+    useEffect(() => {
+        loadChains().then(res => {
+            setChains(res.chains)
+            setSelected(res.chains[0])
+        }).catch(err => {
+            console.error(err);
+            setError("server is not available");
+        })
+    }, [])
+
+    if(error != null) {
+        return (
+            <div className="bg-slate-800 h-screen">
+                <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
+                    <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                        <AlertView message={error} type="error"/>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="bg-slate-800 h-screen">
+            <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
+                <div className="sm:mx-auto sm:w-full sm:max-w-md">
+                    { error && <AlertView message={error} type="error"/> }
+                    { alert && <AlertView message={alert} type="warning"/> }
+                    { success && <AlertView message={success} type="success"/> }
+                    { isSending && <AlertView message={"Transaction is being sent to the server"} type="warning"/> }
                   <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-white">Cosmfaucet</h2>
-              </div>
-
-              <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                  <div className="bg-slate-700 py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                      <form className="space-y-6" action="#" method="POST">
-                          <div>
-                              <label htmlFor="email" className="block text-sm font-medium text-white">
-                                  Email address
-                              </label>
-                              <div className="mt-1">
-                                  <input
-                                      id="email"
-                                      name="email"
-                                      type="email"
-                                      autoComplete="email"
-                                      required
-                                      className="block w-full bg-slate-800 text-white appearance-none rounded-md border border-slate-900 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                                  />
-                              </div>
-                          </div>
-
-                          <div>
-                              <label htmlFor="address" className="block text-sm font-medium text-white">
-                                  Wallet Address
-                              </label>
-                              <div className="mt-1">
-                                  <input
-                                      id="address"
-                                      name="address"
-                                      type="text"
-                                      required
-                                      className="block w-full bg-slate-800 text-white appearance-none rounded-md border border-slate-900 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                                  />
-                              </div>
-                          </div>
-
-                          <div>
-                              <button
-                                  type="submit"
-                                  className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                              >
-                                  Run
-                              </button>
-                          </div>
-                      </form>
-                  </div>
-              </div>
-          </div>
-      </div>
-  );
+                </div>
+                { chains.length === 0 && (<div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+                    <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+                        <div className="bg-slate-700 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                            <div className="space-y-6 text-white">
+                                No chains available
+                            </div>
+                        </div>
+                    </div>
+                </div>) }
+                <FaucetUI
+                    isSending={isSending}
+                    chains={chains}
+                    selectedChain={selected}
+                    handleSelectChain={setSelected}
+                    address={address}
+                    onAddressChanged={setAddress}
+                    handleSubmit={handleSubmit}
+                />
+            </div>
+        </div>
+    );
 }
 
 export default App;

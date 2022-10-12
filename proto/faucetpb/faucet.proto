@@ -52,7 +52,9 @@ message GiveMeRequest {
   string address = 1;
   string chain_id = 2;
 }
-message GiveMeResponse {}
+message GiveMeResponse {
+  string tx_hash = 1;
+}
 
 message GetChainsRequest {}
 message GetChainsResponse {
