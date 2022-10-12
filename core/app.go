@@ -55,7 +55,7 @@ func NewApp(config *RootConfig) (*App, error) {
 		logger.Info("trying to connect to the chain", fields...)
 		cc, err := newChainClient(logger, chain, keyDir)
 		if err != nil {
-			logger.Fatal("failed to connect to the chain", fields...)
+			logger.Fatal("failed to connect to the chain", zap.Error(err))
 			return nil, err
 		}
 
@@ -144,6 +144,26 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 		return err
 	}
 
+	if err := mux.HandlePath("GET", "/", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		// serve static file
+		http.ServeFile(w, r, "frontend/build/index.html")
+	}); err != nil {
+		return err
+	}
+
+	if err := mux.HandlePath("GET", "/static/js/**", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		http.ServeFile(w, r, "frontend/build/"+r.URL.Path)
+	}); err != nil {
+		return err
+	}
+
+	if err := mux.HandlePath("GET", "/static/css/**", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		fmt.Printf("path: %s", r.URL.Path)
+		http.ServeFile(w, r, "frontend/build/"+r.URL.Path)
+	}); err != nil {
+		return err
+	}
+
 	httpSv := http.Server{
 		Addr:    httpAddr,
 		Handler: mux,
@@ -211,10 +231,8 @@ func newLensClient(logger *zap.Logger, config ChainConfig, homePath string) (*le
 		return nil, err
 	}
 
-	addr, err := cc.RestoreKey(config.ChainId, config.Key, 118)
-	if err != nil {
-		return nil, err
-	}
+	// ignore the error
+	addr, _ := cc.RestoreKey(config.ChainId, config.Key, 118)
 	logger.Info("master wallet is restored", zap.String("address", addr))
 
 	return cc, nil

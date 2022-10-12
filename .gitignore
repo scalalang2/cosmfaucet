@@ -3,3 +3,6 @@
 .vscode
 
 bin/
+
+# lens client key folders
+keys/
