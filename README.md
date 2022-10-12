@@ -4,14 +4,23 @@ Cosmfaucet is a self-hosted faucet service for cosmos based blockchain.
 
 ![Homescreen](./docs/homescreen.png)
 
-#### Supported Features
+### Supported Features
 * Multi-chain support
 
-#### End-to-end Test Environment
+### End-to-end Test Environment
 Please check on `e2e/docker-compose.yml` file in this project.
 It launches `a local testnet` and `the faucet server`.
 
-#### Configuration
+#### Run faucet server manually
+```bash
+$ make build
+$ ./bin/server --config-file config.yml
+```
+
+#### Run from docker
+Please check [e2e/docker-compose.yml](./e2e/docker-compose.yml) file.
+
+### Configuration
 You can add supported chains as many as possible.
 
 ```yaml
@@ -54,7 +63,9 @@ chains:
 | `chains[].account_prefix` | The account prefix of the chain, it is used to check wether the given address is valid or not                                                                             |  |
 | `chains[].sender` | The address of the sender                                                                                                                                                 |  |
 | `chains[].key` | The private key of the sender, <br/>it is used to sign the transaction<br/>**Please do not use this key for important business, it must be only used for faucet service** |  |
-| `chains[].gas_adjustment` | It's used to avoid underestimating amount of gas needed to send transaction                                                                                               | `1.2` |
+| `chains[].gas_adjustment` | It's used to avoid underestimating amount of gas needed to send transaction                                                                                               |  |
 | `chains[].gas_price` | The gas price of the chain                                                                           |  |
 | `chains[].drop_coin` | The amount of the coin to be dropped, it must be in the format of `{amount}{denom}`                                                                                       |  |
 
+#### Contribution
+Please feel free to open an issue or a pull request.
