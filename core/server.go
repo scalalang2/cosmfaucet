@@ -2,14 +2,13 @@ package core
 
 import (
 	"context"
-	"sync"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"sync"
 )
 
 type Server struct {
@@ -46,10 +45,6 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 		}
 	}
 
-	if chainConfig == nil {
-		return nil, status.Error(codes.NotFound, "chain not supported")
-	}
-
 	// validate address format
 	acc, err := sdk.GetFromBech32(request.Address, chainConfig.AccountPrefix)
 	if err != nil {
@@ -74,7 +69,6 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 	msg := banktypes.NewMsgSend(from, acc, []sdk.Coin{coin})
 	txResponse, err := client.SendMsg(ctx, msg)
 	if err != nil {
-		s.log.Error("failed to send transaction", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to send transaction, please try later")
 	}
 
@@ -84,7 +78,9 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 		zap.String("chain", request.ChainId),
 	)
 
-	return &faucetpb.GiveMeResponse{}, nil
+	return &faucetpb.GiveMeResponse{
+		TxHash: txResponse.TxHash,
+	}, nil
 }
 
 // Chains returns all supported chains
