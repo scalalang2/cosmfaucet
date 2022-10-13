@@ -6,24 +6,19 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
-	lens "github.com/strangelove-ventures/lens/client"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type ChainId = string
-type ChainClients = map[ChainId]*lens.ChainClient
-type ChainInitializer = func(logger *zap.Logger, config ChainConfig, homePath string) (*lens.ChainClient, error)
-
-// chain initializer
-var newChainClient = newLensClient
+type ChainClients = map[ChainId]RPCClient
+type ChainInitializer = func(logger *zap.Logger, config ChainConfig, homePath string) (RPCClient, error)
 
 type App struct {
 	logger  *zap.Logger
@@ -82,16 +77,19 @@ func (a *App) validateChainConditions() error {
 			return fmt.Errorf("chain with id %s does not exist", chain.ChainId)
 		}
 
+		// check sender is the valid address
 		addr, err := sdk.GetFromBech32(chain.Sender, chain.AccountPrefix)
 		if err != nil {
 			return err
 		}
 
+		// check drop coin is the valid coin
 		dropCoin, err := sdk.ParseCoinNormalized(chain.DropCoin)
 		if err != nil {
 			return err
 		}
 
+		// check the denom of `dropCoin` is the same with native currency
 		coins, err := client.QueryBalanceWithDenomTraces(context.Background(), addr, nil)
 		if err != nil {
 			return err
@@ -145,29 +143,22 @@ func (a *App) runHTTPServer(ctx context.Context) error {
 		return err
 	}
 
-	if err := mux.HandlePath("GET", "/", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		// serve static file
-		http.ServeFile(w, r, "frontend/build/index.html")
-	}); err != nil {
+	// serve frontend static files
+	if err = a.serveFrontend(mux); err != nil {
 		return err
 	}
 
-	if err := mux.HandlePath("GET", "/static/js/**", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		http.ServeFile(w, r, "frontend/build/"+r.URL.Path)
-	}); err != nil {
-		return err
-	}
-
-	if err := mux.HandlePath("GET", "/static/css/**", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
-		fmt.Printf("path: %s", r.URL.Path)
-		http.ServeFile(w, r, "frontend/build/"+r.URL.Path)
-	}); err != nil {
-		return err
+	// enable cors if `server.allow_cors` is true
+	var handler http.Handler
+	if a.config.Server.AllowCors {
+		handler = cors.Default().Handler(mux)
+	} else {
+		handler = mux
 	}
 
 	httpSv := http.Server{
 		Addr:    httpAddr,
-		Handler: cors.Default().Handler(mux),
+		Handler: handler,
 	}
 
 	go func() {
@@ -201,40 +192,31 @@ func (a *App) Run() error {
 	return nil
 }
 
-func (a *App) Stop() {
-	a.cancelFunc()
+func (a *App) serveFrontend(mux *runtime.ServeMux) error {
+	if err := mux.HandlePath("GET", "/", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		// serve static file
+		http.ServeFile(w, r, "frontend/build/index.html")
+	}); err != nil {
+		return err
+	}
+
+	if err := mux.HandlePath("GET", "/static/js/**", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		http.ServeFile(w, r, "frontend/build/"+r.URL.Path)
+	}); err != nil {
+		return err
+	}
+
+	if err := mux.HandlePath("GET", "/static/css/**", func(w http.ResponseWriter, r *http.Request, pathParams map[string]string) {
+		fmt.Printf("path: %s", r.URL.Path)
+		http.ServeFile(w, r, "frontend/build/"+r.URL.Path)
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// newLensClient create a client for the cosmos blockchain
-func newLensClient(logger *zap.Logger, config ChainConfig, homePath string) (*lens.ChainClient, error) {
-	if !strings.HasPrefix(config.RpcEndpoint, "http") {
-		return nil, errInvalidEndpoint{rpc: config.RpcEndpoint}
-	}
-
-	cfg := lens.ChainClientConfig{
-		Key:            config.KeyName,
-		ChainID:        config.ChainId,
-		RPCAddr:        config.RpcEndpoint,
-		AccountPrefix:  config.AccountPrefix,
-		KeyringBackend: "test",
-		GasAdjustment:  config.GasAdjustment,
-		GasPrices:      config.GasPrice,
-		KeyDirectory:   homePath,
-		Debug:          false,
-		Timeout:        "20s",
-		OutputFormat:   "json",
-		SignModeStr:    "direct",
-		Modules:        lens.ModuleBasics,
-	}
-
-	cc, err := lens.NewChainClient(logger, &cfg, homePath, os.Stdin, os.Stdout)
-	if err != nil {
-		return nil, err
-	}
-
-	// ignore the error
-	addr, _ := cc.RestoreKey(config.KeyName, config.Key, 118)
-	logger.Info("master wallet is restored", zap.String("address", addr))
-
-	return cc, nil
+func (a *App) Stop() {
+	a.logger.Info("shutting down the application")
+	a.cancelFunc()
 }

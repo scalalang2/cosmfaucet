@@ -13,7 +13,8 @@ type RootConfig struct {
 }
 
 type ServerConfig struct {
-	Http struct {
+	AllowCors bool `yaml:"allow_cors"`
+	Http      struct {
 		Port int `yaml:"port"`
 	} `yaml:"http"`
 	Grpc struct {

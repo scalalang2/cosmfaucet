@@ -46,6 +46,10 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 		}
 	}
 
+	if chainConfig == nil {
+		return nil, status.Error(codes.NotFound, "chain not supported")
+	}
+
 	// validate address format
 	acc, err := sdk.GetFromBech32(request.Address, chainConfig.AccountPrefix)
 	if err != nil {
