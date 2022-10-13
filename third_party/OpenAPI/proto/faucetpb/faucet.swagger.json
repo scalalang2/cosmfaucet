@@ -113,7 +113,12 @@
       }
     },
     "exampleGiveMeResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "txHash": {
+          "type": "string"
+        }
+      }
     },
     "protobufAny": {
       "type": "object",
