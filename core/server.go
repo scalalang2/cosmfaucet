@@ -2,18 +2,20 @@ package core
 
 import (
 	"context"
+	"sync"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"sync"
 )
 
 type Server struct {
-	mux sync.Mutex
-	log *zap.Logger
+	mux     sync.Mutex
+	log     *zap.Logger
+	limiter *Limiter
 
 	faucetpb.FaucetServiceServer
 	config  *RootConfig
@@ -21,8 +23,19 @@ type Server struct {
 }
 
 func NewServer(log *zap.Logger, config *RootConfig, clients ChainClients) *Server {
+	chains := make([]ChainId, 0)
+	for _, chainCfg := range config.Chains {
+		chains = append(chains, chainCfg.ChainId)
+	}
+
+	var limiter *Limiter
+	if config.Server.Limit.Enabled {
+		limiter = NewLimiter(chains, config.Server.Limit.Period)
+	}
+
 	return &Server{
 		log:     log,
+		limiter: limiter,
 		config:  config,
 		clients: clients,
 	}
@@ -55,6 +68,14 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 	// send the bank msg transaction
 	s.mux.Lock()
 	defer s.mux.Unlock()
+
+	if s.limiter != nil {
+		if !s.limiter.IsAllowed(request.ChainId, request.Address) {
+			return nil, status.Error(codes.PermissionDenied, "user cannot request token more than once during specific period of time")
+		}
+
+		s.limiter.AddRequest(request.ChainId, request.Address)
+	}
 
 	from, err := sdk.GetFromBech32(chainConfig.Sender, chainConfig.AccountPrefix)
 	if err != nil {

@@ -1,8 +1,8 @@
 package core
 
 import (
-	"io/ioutil"
 	"log"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -21,8 +21,8 @@ type ServerConfig struct {
 		Port int `yaml:"port"`
 	} `yaml:"grpc"`
 	Limit struct {
-		Enabled bool `yaml:"enabled"`
-		Period  int  `yaml:"period"`
+		Enabled bool  `yaml:"enabled"`
+		Period  int64 `yaml:"period"`
 	} `yaml:"limit"`
 }
 
@@ -41,7 +41,7 @@ type ChainConfig struct {
 
 // LoadConfig loads config from file
 func LoadConfig(filepath string) *RootConfig {
-	contents, err := ioutil.ReadFile(filepath)
+	contents, err := os.ReadFile(filepath)
 	if err != nil {
 		log.Fatalf("failed to read file from path: %s, err: %v", filepath, err)
 	}
