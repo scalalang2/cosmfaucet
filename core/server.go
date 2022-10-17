@@ -9,6 +9,7 @@ import (
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 )
 
@@ -44,6 +45,11 @@ func NewServer(log *zap.Logger, config *RootConfig, clients ChainClients) *Serve
 // GiveMe sends a `BankMsg` transaction to the chain to send some tokens to the given address
 // It blocks the request if the user is given the token in the last 24 hours.
 func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*faucetpb.GiveMeResponse, error) {
+	p, ok := peer.FromContext(ctx)
+	if !ok {
+		return nil, status.Error(codes.Internal, "failed to get peer from context")
+	}
+
 	client, ok := s.clients[request.ChainId]
 	if !ok {
 		return nil, status.Error(codes.NotFound, "chain not supported")
@@ -64,17 +70,16 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 		return nil, status.Error(codes.InvalidArgument, "invalid address")
 	}
 
-	// TODO: check if the user is already given the token in the last 24 hours
-	// send the bank msg transaction
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
 	if s.limiter != nil {
-		if !s.limiter.IsAllowed(request.ChainId, request.Address) {
+		remoteAddr := p.Addr.String()
+		if !s.limiter.IsAllowed(request.ChainId, remoteAddr) {
 			return nil, status.Error(codes.PermissionDenied, "user cannot request token more than once during specific period of time")
 		}
 
-		s.limiter.AddRequest(request.ChainId, request.Address)
+		s.limiter.AddRequest(request.ChainId, remoteAddr)
 	}
 
 	from, err := sdk.GetFromBech32(chainConfig.Sender, chainConfig.AccountPrefix)

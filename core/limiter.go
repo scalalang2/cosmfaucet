@@ -7,8 +7,8 @@ import (
 )
 
 type LastRequest struct {
-	address string
-	time    timestamp
+	ipAddress string
+	time      timestamp
 }
 
 type timestamp int64
@@ -68,8 +68,8 @@ func NewLimiter(chains []ChainId, limitPeriod int64) *Limiter {
 	}
 }
 
-// AddRequest add a request information to record the address of the user and when the request was made
-func (l *Limiter) AddRequest(chainId ChainId, address string) {
+// AddRequest add a request information to record the ipAddress of the user and when the request was made
+func (l *Limiter) AddRequest(chainId ChainId, ipAddress string) {
 	now := timestamp(time.Now().Unix())
 	reqHeap, ok := l.faucetHeap[chainId]
 	if !ok {
@@ -77,19 +77,19 @@ func (l *Limiter) AddRequest(chainId ChainId, address string) {
 	}
 
 	heap.Push(reqHeap, &LastRequest{
-		address: address,
-		time:    now,
+		ipAddress: ipAddress,
+		time:      now,
 	})
 
 	if _, ok := l.accCache[chainId]; !ok {
 		log.Fatalf("given chainId is not registered at limiter: %s", chainId)
 	}
 
-	l.accCache[chainId][address] = true
+	l.accCache[chainId][ipAddress] = true
 }
 
-// IsAllowed checks if the address is allowed to request token
-func (l *Limiter) IsAllowed(chainId ChainId, address string) bool {
+// IsAllowed checks if the ipAddress is allowed to request token
+func (l *Limiter) IsAllowed(chainId ChainId, ipAddress string) bool {
 	reqHeap := l.faucetHeap[chainId]
 	if reqHeap.Len() == 0 {
 		return true
@@ -102,10 +102,10 @@ func (l *Limiter) IsAllowed(chainId ChainId, address string) bool {
 	lastRequest := reqHeap.last()
 	now := timestamp(time.Now().Unix())
 	for reqHeap.Len() != 0 && now-lastRequest.time > l.limitPeriod {
-		delete(l.accCache[chainId], lastRequest.address)
+		delete(l.accCache[chainId], lastRequest.ipAddress)
 		lastRequest = reqHeap.Pop().(*LastRequest)
 	}
 
-	_, ok := l.accCache[chainId][address]
+	_, ok := l.accCache[chainId][ipAddress]
 	return !ok
 }
