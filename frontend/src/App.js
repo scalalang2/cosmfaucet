@@ -32,9 +32,10 @@ function App() {
             },
             body: JSON.stringify(payload)
         });
+        let res_json = await response.json();
 
         setIsSending(false);
-        response.status === 200 ? setSuccess("Transaction successfully sent") : setAlert(`Error occurred while sending transaction, status code: ${response.status}`);
+        response.status === 200 ? setSuccess("Transaction successfully sent") : setAlert(res_json.message);
         response.status === 200 ? setAlert(null) : setSuccess(null);
         console.log(response);
     }
