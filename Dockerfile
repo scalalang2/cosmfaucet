@@ -18,4 +18,5 @@ WORKDIR /app
 
 RUN mkdir /app/config
 
+COPY --from=builder /src/frontend/build /app/frontend/build
 COPY --from=builder /src/bin /app

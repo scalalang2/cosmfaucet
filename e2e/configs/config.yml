@@ -1,14 +1,20 @@
 server:
-  port: 8080
+  allow_cors: false
+  http:
+    port: 8080
+  grpc:
+    port: 9092
   limit:
     enabled: true
     period: 86400
 chains:
-  - name: "test"
-    grpc_endpoint: "localhost:9090"
-    chain_id: testchain
-    faucet:
-      sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
-      key: "reopen throw concert garment wash slab jump company habit father below stage float attitude achieve net charge bulb mouse mind fat net hello vague"
-      denom: "atom"
-      drop_amount: "10000000"
+  - name: "cosmos"
+    key_name: "cosmos"
+    chain_id: "testchain"
+    rpc_endpoint: "http://testchain:26657/"
+    account_prefix: "cosmos"
+    sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
+    key: "reopen throw concert garment wash slab jump company habit father below stage float attitude achieve net charge bulb mouse mind fat net hello vague"
+    gas_adjustment: 1.2
+    gas_price: "0.01uatom"
+    drop_coin: "10000000uatom"
