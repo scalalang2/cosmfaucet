@@ -84,17 +84,20 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 
 	from, err := sdk.GetFromBech32(chainConfig.Sender, chainConfig.AccountPrefix)
 	if err != nil {
+		s.log.Error("invalid sender address", zap.Error(err))
 		return nil, status.Error(codes.Internal, "invalid sender address | this is unexpected error, please inform to the admin.")
 	}
 
 	coin, err := sdk.ParseCoinNormalized(chainConfig.DropCoin)
 	if err != nil {
+		s.log.Error("invalid coin format", zap.Error(err))
 		return nil, status.Error(codes.Internal, "invalid coin format | this is unexpected error, please inform to the admin.")
 	}
 
 	msg := banktypes.NewMsgSend(from, acc, []sdk.Coin{coin})
 	txResponse, err := client.SendMsg(ctx, msg)
 	if err != nil {
+		s.log.Error("failed to send transaction", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to send transaction, please try later")
 	}
 
