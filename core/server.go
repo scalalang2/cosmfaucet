@@ -70,6 +70,18 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 		return nil, status.Error(codes.InvalidArgument, "invalid address")
 	}
 
+	from, err := sdk.GetFromBech32(chainConfig.Sender, chainConfig.AccountPrefix)
+	if err != nil {
+		s.log.Error("invalid sender address", zap.Error(err))
+		return nil, status.Error(codes.Internal, "invalid sender address | this is unexpected error, please inform to the admin.")
+	}
+
+	coin, err := sdk.ParseCoinNormalized(chainConfig.DropCoin)
+	if err != nil {
+		s.log.Error("invalid coin format", zap.Error(err))
+		return nil, status.Error(codes.Internal, "invalid coin format | this is unexpected error, please inform to the admin.")
+	}
+
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -82,17 +94,10 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 		s.limiter.AddRequest(request.ChainId, remoteAddr)
 	}
 
-	from, err := sdk.GetFromBech32(chainConfig.Sender, chainConfig.AccountPrefix)
-	if err != nil {
-		s.log.Error("invalid sender address", zap.Error(err))
-		return nil, status.Error(codes.Internal, "invalid sender address | this is unexpected error, please inform to the admin.")
-	}
-
-	coin, err := sdk.ParseCoinNormalized(chainConfig.DropCoin)
-	if err != nil {
-		s.log.Error("invalid coin format", zap.Error(err))
-		return nil, status.Error(codes.Internal, "invalid coin format | this is unexpected error, please inform to the admin.")
-	}
+	s.log.Info("trying to send tokens",
+		zap.String("from", sdk.AccAddress(from).String()),
+		zap.String("to", sdk.AccAddress(acc).String()),
+		zap.String("coin", coin.String()))
 
 	msg := banktypes.NewMsgSend(from, acc, []sdk.Coin{coin})
 	txResponse, err := client.SendMsg(ctx, msg)
