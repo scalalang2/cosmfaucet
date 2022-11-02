@@ -90,20 +90,28 @@ func (s *Server) GiveMe(ctx context.Context, request *faucetpb.GiveMeRequest) (*
 		if !s.limiter.IsAllowed(request.ChainId, remoteAddr) {
 			return nil, status.Error(codes.PermissionDenied, "user cannot request token more than once during specific period of time")
 		}
-
-		s.limiter.AddRequest(request.ChainId, remoteAddr)
 	}
 
 	s.log.Info("trying to send tokens",
-		zap.String("from", sdk.AccAddress(from).String()),
-		zap.String("to", sdk.AccAddress(acc).String()),
+		zap.String("from", client.MustEncodeAccAddr(from)),
+		zap.String("to", client.MustEncodeAccAddr(acc)),
 		zap.String("coin", coin.String()))
 
-	msg := banktypes.NewMsgSend(from, acc, []sdk.Coin{coin})
+	msg := &banktypes.MsgSend{
+		FromAddress: client.MustEncodeAccAddr(from),
+		ToAddress:   client.MustEncodeAccAddr(acc),
+		Amount:      []sdk.Coin{coin},
+	}
+
 	txResponse, err := client.SendMsg(ctx, msg)
 	if err != nil {
 		s.log.Error("failed to send transaction", zap.Error(err))
 		return nil, status.Error(codes.Internal, "failed to send transaction, please try later")
+	}
+
+	if s.limiter != nil {
+		remoteAddr := p.Addr.String()
+		s.limiter.AddRequest(request.ChainId, remoteAddr)
 	}
 
 	s.log.Info("BankMsg transaction has been executed",

@@ -16,6 +16,7 @@ import (
 type RPCClient interface {
 	SendMsg(ctx context.Context, msg sdk.Msg) (*sdk.TxResponse, error)
 	QueryBalanceWithDenomTraces(ctx context.Context, address sdk.AccAddress, pageReq *query.PageRequest) (sdk.Coins, error)
+	MustEncodeAccAddr(addr sdk.AccAddress) string
 }
 
 // chain initializer
