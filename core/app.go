@@ -11,14 +11,15 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
 	"github.com/scalalang2/cosmfaucet/gen/proto/faucetpb"
+	lens "github.com/strangelove-ventures/lens/client"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type ChainId = string
-type ChainClients = map[ChainId]RPCClient
-type ChainInitializer = func(logger *zap.Logger, config ChainConfig, homePath string) (RPCClient, error)
+type ChainClients = map[ChainId]*lens.ChainClient
+type ChainInitializer = func(logger *zap.Logger, config ChainConfig, homePath string) (*lens.ChainClient, error)
 
 type App struct {
 	logger  *zap.Logger

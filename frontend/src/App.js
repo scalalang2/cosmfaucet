@@ -35,7 +35,7 @@ function App() {
         let res_json = await response.json();
 
         setIsSending(false);
-        response.status === 200 ? setSuccess("Transaction successfully sent") : setAlert(res_json.message);
+        response.status === 200 ? setSuccess("your request is sent, it may takes some time to proceed") : setAlert(res_json.message);
         response.status === 200 ? setAlert(null) : setSuccess(null);
         console.log(response);
     }
