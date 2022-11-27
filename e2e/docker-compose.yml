@@ -1,25 +1,38 @@
 version: '3.4'
 
 services:
-  testchain:
-    container_name: testchain
+  testchain-1:
+    container_name: testchain-1
     image: tendermint/gaia:v4.2.0
     restart: always
     user: root
     volumes:
-      - ./scripts:/gaia
+      - ./scripts:/home
     command:
       - /bin/sh
       - -c
       - |
         echo "start run single node."
-        /gaia/init_chain.sh
+        /home/init_chain.sh cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0 uatom gaia
     ports:
-      - "26656:26656"
       - "26657:26657"
       - "1317:1317"
-      - "9090:9090"
-      - "9091:9091"
+  testchain-2:
+    container_name: testchain-2
+    image: tendermint/gaia:v4.2.0
+    restart: always
+    user: root
+    volumes:
+      - ./scripts:/home
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo "start run single node."
+        /home/init_chain.sh cosmos10hhwf89y3gvum4xyzlyz48zxldjehlqzf4dlwt ujuno juno
+    ports:
+      - "26658:26657"
+      - "1318:1317"
   faucet:
     build:
       context: ..

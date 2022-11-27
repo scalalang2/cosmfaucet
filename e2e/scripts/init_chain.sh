@@ -1,11 +1,13 @@
 #!/bin/sh
 
-MONIKER=testchainer
-CHAIN_ID=testchain
+MONIKER=gaiachainer
+CHAIN_ID=$3
 KEYRING=test
-HOME_PATH=/data/chain/.gaiad
+HOME_PATH=/data/chain/.data
 WALLET_NAME=validator
-FAUCET_ADDRESS=cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0
+#FAUCET_ADDRESS=cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0
+FAUCET_ADDRESS=$1
+DENOM=$2
 RUN_CMD=gaiad
 
 rm -rf $HOME_PATH
@@ -18,8 +20,8 @@ $RUN_CMD init $MONIKER --chain-id=$CHAIN_ID --home=$HOME_PATH
 $RUN_CMD keys add $WALLET_NAME --keyring-backend=$KEYRING --home=$HOME_PATH
 
 # create validator node with tokens to transfer to the three other nodes
-$RUN_CMD add-genesis-account $($RUN_CMD keys show $WALLET_NAME -a --keyring-backend=$KEYRING --home=$HOME_PATH) 100000000000uatom,100000000000stake --home=$HOME_PATH
-$RUN_CMD add-genesis-account $FAUCET_ADDRESS 100000000000uatom --home=$HOME_PATH
+$RUN_CMD add-genesis-account $($RUN_CMD keys show $WALLET_NAME -a --keyring-backend=$KEYRING --home=$HOME_PATH) 100000000000$DENOM,100000000000stake --home=$HOME_PATH
+$RUN_CMD add-genesis-account $FAUCET_ADDRESS 100000000000$DENOM --home=$HOME_PATH
 $RUN_CMD gentx $WALLET_NAME 500000000stake --keyring-backend=$KEYRING --home=$HOME_PATH --chain-id=$CHAIN_ID
 $RUN_CMD collect-gentxs --home=$HOME_PATH
 
