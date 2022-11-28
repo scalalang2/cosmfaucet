@@ -1,7 +1,7 @@
 server:
   allow_cors: false
   http:
-    port: 8081
+    port: 8080
   grpc:
     port: 9092
   limit:
@@ -10,7 +10,7 @@ server:
 chains:
   - name: "cosmos"
     key_name: "cosmos"
-    chain_id: "testchain"
+    chain_id: "gaia"
     rpc_endpoint: "http://localhost:26657/"
     account_prefix: "cosmos"
     sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
@@ -18,13 +18,13 @@ chains:
     gas_adjustment: 1.2
     gas_price: "0.01uatom"
     drop_coin: "10000000uatom"
-  - name: "osmosis"
-    key_name: "osmosis"
-    chain_id: "testchain22"
-    rpc_endpoint: "http://localhost:26657/"
+  - name: "juno"
+    key_name: "juno"
+    chain_id: "juno"
+    rpc_endpoint: "http://localhost:26658/"
     account_prefix: "cosmos"
-    sender: "cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0"
-    key: "reopen throw concert garment wash slab jump company habit father below stage float attitude achieve net charge bulb mouse mind fat net hello vague"
+    sender: "cosmos10hhwf89y3gvum4xyzlyz48zxldjehlqzf4dlwt"
+    key: "predict lonely oxygen category agent wait legend quarter often six liquid search panic panther chuckle glow alone detail bike below dust marriage throw pause"
     gas_adjustment: 1.2
-    gas_price: "0.01uatom"
-    drop_coin: "10000000uatom"
+    gas_price: "0.01ujuno"
+    drop_coin: "10000000ujuno"
