@@ -33,7 +33,33 @@ services:
     ports:
       - "26658:26657"
       - "1318:1317"
+  relayer:
+    container_name: relayer
+    image: relayer
+    build:
+      context: ./relayer
+      dockerfile: Dockerfile.relayer
+    volumes:
+      - ./relayer/:/home/relayer/tmp/
+    command:
+      - /bin/sh
+      - -c
+      - |
+        while ! nc -z testchain-1 26657; do sleep 1; done
+        while ! nc -z testchain-2 26657; do sleep 1; done
+        
+        # sleep enough for at least two blocks to be issued. 
+        sleep 30;
+        
+        mkdir -p /home/relayer/.relayer/config
+        cp -r /home/relayer/tmp/* /home/relayer/.relayer/config/
+        
+        chmod u+x /home/relayer/.relayer/config/start.sh
+        /home/relayer/.relayer/config/start.sh
   faucet:
+    depends_on:
+      - testchain-1
+      - testchain-2
     build:
       context: ..
     restart: always

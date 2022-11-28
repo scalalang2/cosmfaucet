@@ -26,5 +26,5 @@ chains:
     sender: "cosmos10hhwf89y3gvum4xyzlyz48zxldjehlqzf4dlwt"
     key: "predict lonely oxygen category agent wait legend quarter often six liquid search panic panther chuckle glow alone detail bike below dust marriage throw pause"
     gas_adjustment: 1.2
-    gas_price: "0.01uatom"
-    drop_coin: "10000000uatom"
+    gas_price: "0.01ujuno"
+    drop_coin: "10000000ujuno"

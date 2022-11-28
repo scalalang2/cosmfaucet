@@ -5,7 +5,6 @@ CHAIN_ID=$3
 KEYRING=test
 HOME_PATH=/data/chain/.data
 WALLET_NAME=validator
-#FAUCET_ADDRESS=cosmos1u9vn33qs6jdr3wwq4u2l9p349n9c95uxz2lew0
 FAUCET_ADDRESS=$1
 DENOM=$2
 RUN_CMD=gaiad

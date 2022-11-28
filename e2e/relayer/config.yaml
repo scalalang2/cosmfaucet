@@ -1,0 +1,35 @@
+global:
+    api-listen-addr: :5183
+    timeout: 10s
+    memo: ""
+    light-cache-size: 20
+chains:
+    cosmos:
+        type: cosmos
+        value:
+            key: gaia-key
+            chain-id: gaia
+            rpc-addr: http://testchain-1:26657/
+            account-prefix: cosmos
+            keyring-backend: test
+            gas-adjustment: 1.2
+            gas-prices: 0.01uatom
+            debug: false
+            timeout: 20s
+            output-format: json
+            sign-mode: direct
+    juno:
+        type: cosmos
+        value:
+            key: juno-key
+            chain-id: juno
+            rpc-addr: http://testchain-2:26657/
+            account-prefix: cosmos
+            keyring-backend: test
+            gas-adjustment: 1.2
+            gas-prices: 0.01ujuno
+            debug: false
+            timeout: 20s
+            output-format: json
+            sign-mode: direct
+paths: {}
