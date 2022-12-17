@@ -45,17 +45,19 @@ services:
       - /bin/sh
       - -c
       - |
+        RELAYER_HOME=/home/relayer/.relayer/config
+        
         while ! nc -z testchain-1 26657; do sleep 1; done
         while ! nc -z testchain-2 26657; do sleep 1; done
         
         # sleep enough for at least two blocks to be issued. 
         sleep 30;
         
-        mkdir -p /home/relayer/.relayer/config
-        cp -r /home/relayer/tmp/* /home/relayer/.relayer/config/
+        mkdir -p $RELAYER_HOME
+        cp -r /home/relayer/tmp/* $RELAYER_HOME/
         
-        chmod u+x /home/relayer/.relayer/config/start.sh
-        /home/relayer/.relayer/config/start.sh
+        chmod u+x $RELAYER_HOME/start.sh
+        $RELAYER_HOME/start.sh
   faucet:
     depends_on:
       - testchain-1

@@ -8,8 +8,11 @@ Cosmfaucet is a self-hosted faucet service for cosmos based blockchain.
 * Multi-chain support
 
 ### End-to-end Test Environment
-Please check on `e2e/docker-compose.yml` file in this project.
-It launches `a local testnet` and `the faucet server`.
+To launch a e2e environment, please follow below steps.
+
+1. Visit to the [e2e](./e2e) directory.
+2. Run `docker-compose up` to launch 2 chains, a relayer and `the faucet service`.
+3. Visit to the [http://localhost:8080](http://localhost:8080) with your browser.
 
 #### Run faucet server manually
 ```bash

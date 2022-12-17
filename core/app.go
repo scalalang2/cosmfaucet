@@ -38,7 +38,6 @@ func NewApp(config *RootConfig) (*App, error) {
 		return nil, err
 	}
 	app.logger = logger
-	defer logger.Sync()
 
 	// connects to all chains
 	wd, err := os.Getwd()
@@ -218,6 +217,10 @@ func (a *App) serveFrontend(mux *runtime.ServeMux) error {
 }
 
 func (a *App) Stop() {
+	defer a.cancelFunc()
 	a.logger.Info("shutting down the application")
-	a.cancelFunc()
+	err := a.logger.Sync()
+	if err != nil {
+		a.logger.Panic("logging synchronization failed", zap.Error(err))
+	}
 }
