@@ -99,13 +99,20 @@ func (l *Limiter) IsAllowed(chainId ChainId, ipAddress string) bool {
 		log.Fatalf("given chainId is not registered at limiter: %s", chainId)
 	}
 
+	l.removeOldCaches(reqHeap, chainId)
+
+	_, ok := l.accCache[chainId][ipAddress]
+	return !ok
+}
+
+// removeOldCaches removes a cache that is older than the `limitPeriod`
+// It means that the appeared time of requests in the heap is over the `limitPeriod`,
+// Therefore it must be allowed to serve the new faucet request.
+func (l *Limiter) removeOldCaches(reqHeap *RequestHeap, chainId ChainId) {
 	lastRequest := reqHeap.last()
 	now := timestamp(time.Now().Unix())
 	for reqHeap.Len() != 0 && now-lastRequest.time > l.limitPeriod {
 		delete(l.accCache[chainId], lastRequest.ipAddress)
 		lastRequest = reqHeap.Pop().(*LastRequest)
 	}
-
-	_, ok := l.accCache[chainId][ipAddress]
-	return !ok
 }
